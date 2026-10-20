@@ -1,6 +1,6 @@
 import { StrictMode, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { createRoot } from 'react-dom/client'
-import { buildFallbackPlan, requestAiPlan, type PlannedTask, type PlannerMode, type Priority } from './planner'
+import { buildFallbackPlan, calculateProgress, getNextRecommendedTask, requestAiPlan, type PlannedTask, type PlannerMode, type Priority } from './planner'
 import './styles.css'
 
 type SavedGoal = {
@@ -9,6 +9,8 @@ type SavedGoal = {
   createdAt: string
   updatedAt: string
   plannerMode: PlannerMode
+  duration?: string
+  timePerDay?: string
   tasks: PlannedTask[]
 }
 
@@ -22,7 +24,7 @@ function readSavedGoals(): SavedGoal[] {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
       const parsed = JSON.parse(stored) as SavedGoal[]
-      if (Array.isArray(parsed)) return parsed
+      if (Array.isArray(parsed)) return parsed.map(normalizeSavedGoal)
     }
 
     const legacy = localStorage.getItem('qivorant-active-plan')
@@ -35,11 +37,19 @@ function readSavedGoals(): SavedGoal[] {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       plannerMode: 'fallback',
-      tasks: parsedLegacy.tasks.map((task) => ({ ...task, completed: Boolean(task.completed) })),
+      tasks: parsedLegacy.tasks.map(normalizeTask),
     }]
   } catch {
     return []
   }
+}
+
+function normalizeTask(task: PlannedTask): PlannedTask {
+  return { ...task, description: task.description || `Complete the step: ${task.title}.`, completed: Boolean(task.completed) }
+}
+
+function normalizeSavedGoal(goal: SavedGoal): SavedGoal {
+  return { ...goal, tasks: Array.isArray(goal.tasks) ? goal.tasks.map(normalizeTask) : [] }
 }
 
 function formatDate(value: string) {
@@ -56,6 +66,7 @@ export function App() {
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null)
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('all')
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all')
+  const [highlightedTaskId, setHighlightedTaskId] = useState<number | null>(null)
 
   const activeGoal = goals.find((goal) => goal.id === activeGoalId) ?? null
 
@@ -74,6 +85,8 @@ export function App() {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const title = String(formData.get('new-goal') ?? '').trim()
+    const duration = String(formData.get('duration') ?? '').trim()
+    const timePerDay = String(formData.get('time-per-day') ?? '').trim()
 
     if (!title) {
       setError('Please enter a goal before creating a plan.')
@@ -90,15 +103,15 @@ export function App() {
 
     if (endpoint) {
       try {
-        tasks = await requestAiPlan(title, endpoint)
+        tasks = await requestAiPlan(title, endpoint, { duration, timePerDay })
         plannerMode = 'ai'
         setPlannerNotice('Generated with your configured AI planner.')
       } catch {
-        tasks = buildFallbackPlan(title)
+        tasks = buildFallbackPlan(title, { duration, timePerDay })
         setPlannerNotice('AI planner unavailable, so Qivorant used its deterministic fallback plan.')
       }
     } else {
-      tasks = buildFallbackPlan(title)
+      tasks = buildFallbackPlan(title, { duration, timePerDay })
       setPlannerNotice('Deterministic fallback plan — configure VITE_AI_PLANNER_URL to enable AI planning.')
     }
 
@@ -109,6 +122,8 @@ export function App() {
       createdAt: now,
       updatedAt: now,
       plannerMode,
+      duration: duration || undefined,
+      timePerDay: timePerDay || undefined,
       tasks,
     }
     setGoals((current) => [newGoal, ...current])
@@ -117,6 +132,7 @@ export function App() {
     setPlannerState('idle')
     setTaskFilter('all')
     setPriorityFilter('all')
+    setHighlightedTaskId(null)
   }
 
   function toggleTask(taskId: number) {
@@ -130,6 +146,14 @@ export function App() {
 
   function deleteTask(taskId: number) {
     updateActiveGoal((goal) => ({ ...goal, tasks: goal.tasks.filter((task) => task.id !== taskId) }))
+  }
+
+  function focusNextTask() {
+    if (!nextTask) return
+    setTaskFilter('all')
+    setPriorityFilter('all')
+    setHighlightedTaskId(nextTask.id)
+    window.requestAnimationFrame(() => document.getElementById(`task-${nextTask.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
   }
 
   function moveTask(taskId: number, direction: -1 | 1) {
@@ -152,7 +176,7 @@ export function App() {
     const priority = String(data.get('new-priority') ?? 'Medium') as Priority
     updateActiveGoal((goal) => ({
       ...goal,
-      tasks: [...goal.tasks, { id: Date.now(), title, priority, completed: false }],
+      tasks: [...goal.tasks, { id: Date.now(), title, description: `Complete the step: ${title}.`, priority, completed: false }],
     }))
     form.reset()
   }
@@ -184,7 +208,8 @@ export function App() {
 
   const completedCount = activeGoal?.tasks.filter((task) => task.completed).length ?? 0
   const totalTasks = activeGoal?.tasks.length ?? 0
-  const progress = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0
+  const progress = activeGoal ? calculateProgress(activeGoal.tasks) : 0
+  const nextTask = activeGoal ? getNextRecommendedTask(activeGoal.tasks) : null
 
   return (
     <main className="app-shell">
@@ -232,6 +257,10 @@ export function App() {
               <form className="goal-form" onSubmit={createPlan}>
                 <label htmlFor="goal-input">What do you want to accomplish?</label>
                 <input id="goal-input" name="new-goal" placeholder="e.g. Launch my portfolio website" autoFocus />
+                <div className="goal-options">
+                  <div><label htmlFor="duration-input">Target duration <span>(optional)</span></label><input id="duration-input" name="duration" placeholder="e.g. 30 days" /></div>
+                  <div><label htmlFor="time-input">Time per day <span>(optional)</span></label><input id="time-input" name="time-per-day" placeholder="e.g. 60 minutes" /></div>
+                </div>
                 {error && <p className="form-error" role="alert">{error}</p>}
                 <button type="submit" className="primary-button" disabled={plannerState === 'loading'}>{plannerState === 'loading' ? 'Planning…' : 'Generate plan'}</button>
               </form>
@@ -244,11 +273,16 @@ export function App() {
                 <button type="button" className="text-button" onClick={startNewGoal}>New goal</button>
               </div>
               <h2>{activeGoal.title}</h2>
+              {(activeGoal.duration || activeGoal.timePerDay) && <p className="goal-details">{activeGoal.duration && `Target: ${activeGoal.duration}`}{activeGoal.duration && activeGoal.timePerDay && ' · '}{activeGoal.timePerDay && `${activeGoal.timePerDay} per day`}</p>}
               {plannerNotice && <p className="planner-notice">{plannerNotice}</p>}
               <div className="progress-summary" aria-label="Plan progress">
                 <div className="progress-heading"><span>{completedCount} of {totalTasks} tasks complete</span><strong>{progress}%</strong></div>
                 <div className="progress-track"><span style={{ width: `${progress}%` }} /></div>
               </div>
+              <section className={`next-step ${nextTask ? '' : 'next-step-complete'}`} aria-label="Next recommended step">
+                <div className="next-step-heading"><span className="section-kicker">NEXT RECOMMENDED STEP</span>{nextTask && <strong className={`priority priority-${nextTask.priority.toLowerCase()}`}>{nextTask.priority}</strong>}</div>
+                {nextTask ? <><h3>{nextTask.title}</h3><p>{nextTask.description}</p>{nextTask.suggestedTiming && <small>Suggested timing: {nextTask.suggestedTiming}</small>}<button type="button" className="secondary-button" onClick={focusNextTask}>Go to this task</button></> : <p className="next-step-success">✓ You completed every task in this roadmap.</p>}
+              </section>
               <form className="add-task-form" onSubmit={addTask}>
                 <input name="new-task" placeholder="Add a task to this plan…" aria-label="New task" />
                 <select name="new-priority" defaultValue="Medium" aria-label="New task priority"><option>High</option><option>Medium</option><option>Low</option></select>
@@ -263,8 +297,8 @@ export function App() {
                 <ol className="task-list">
                   {visibleTasks.map((task) => {
                     const taskIndex = activeGoal.tasks.findIndex((item) => item.id === task.id)
-                    return <li key={task.id} className={task.completed ? 'task-complete' : ''}>
-                      {editingTaskId === task.id ? <form className="task-edit-form" onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); updateTask(task.id, { title: String(data.get('title') ?? '').trim() || task.title, priority: String(data.get('priority') ?? task.priority) as Priority }) }}><input name="title" defaultValue={task.title} aria-label="Task title" /><select name="priority" defaultValue={task.priority} aria-label="Task priority"><option>High</option><option>Medium</option><option>Low</option></select><button type="submit" className="text-button">Save</button></form> : <><label className="task-label"><input type="checkbox" checked={task.completed} onChange={() => toggleTask(task.id)} /><span>{task.title}</span></label><div className="task-actions"><strong className={`priority priority-${task.priority.toLowerCase()}`}>{task.priority}</strong><button type="button" className="icon-button" aria-label={`Move ${task.title} up`} disabled={taskIndex === 0} onClick={() => moveTask(task.id, -1)}>↑</button><button type="button" className="icon-button" aria-label={`Move ${task.title} down`} disabled={taskIndex === activeGoal.tasks.length - 1} onClick={() => moveTask(task.id, 1)}>↓</button><button type="button" className="icon-button" aria-label={`Edit ${task.title}`} onClick={() => setEditingTaskId(task.id)}>Edit</button><button type="button" className="icon-button danger" aria-label={`Delete ${task.title}`} onClick={() => deleteTask(task.id)}>Delete</button></div></>}
+                    return <li id={`task-${task.id}`} key={task.id} className={`${task.completed ? 'task-complete' : ''} ${highlightedTaskId === task.id ? 'task-highlighted' : ''}`}>
+                      {editingTaskId === task.id ? <form className="task-edit-form" onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); updateTask(task.id, { title: String(data.get('title') ?? '').trim() || task.title, description: String(data.get('description') ?? '').trim() || task.description, priority: String(data.get('priority') ?? task.priority) as Priority }) }}><input name="title" defaultValue={task.title} aria-label="Task title" /><input name="description" defaultValue={task.description} aria-label="Task description" /><select name="priority" defaultValue={task.priority} aria-label="Task priority"><option>High</option><option>Medium</option><option>Low</option></select><button type="submit" className="text-button">Save</button></form> : <><label className="task-label"><input type="checkbox" checked={task.completed} onChange={() => toggleTask(task.id)} /><span><strong>{task.title}</strong><small>{task.description}</small></span></label><div className="task-actions"><strong className={`priority priority-${task.priority.toLowerCase()}`}>{task.priority}</strong><button type="button" className="icon-button" aria-label={`Move ${task.title} up`} disabled={taskIndex === 0} onClick={() => moveTask(task.id, -1)}>↑</button><button type="button" className="icon-button" aria-label={`Move ${task.title} down`} disabled={taskIndex === activeGoal.tasks.length - 1} onClick={() => moveTask(task.id, 1)}>↓</button><button type="button" className="icon-button" aria-label={`Edit ${task.title}`} onClick={() => setEditingTaskId(task.id)}>Edit</button><button type="button" className="icon-button danger" aria-label={`Delete ${task.title}`} onClick={() => deleteTask(task.id)}>Delete</button></div></>}
                     </li>
                   })}
                 </ol>

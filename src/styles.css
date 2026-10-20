@@ -48,16 +48,23 @@ h2 { margin: 4px 0 0; font-size: 1.55rem; letter-spacing: -0.03em; }
 .primary-button:focus-visible { outline: 3px solid #eaf0f7; outline-offset: 3px; }
 .goal-form { display: grid; gap: 10px; width: 100%; }
 .goal-form label { color: #dbe7f0; font-size: 0.9rem; font-weight: 700; }
+.goal-form label span { color: #718ba0; font-weight: 500; }
 .goal-form input { width: 100%; border: 1px solid #34546d; border-radius: 10px; padding: 13px 14px; color: #eaf0f7; background: #07111f; outline: none; }
 .goal-form input:focus { border-color: #79d9c5; box-shadow: 0 0 0 3px #79d9c533; }
+.goal-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.goal-options div { display: grid; gap: 6px; }
+.goal-options input { padding: 10px 11px; }
 .form-error { margin: 0 !important; color: #ff9e9e !important; font-size: 0.88rem; }
 .plan { width: 100%; }
 .plan-label { margin: 0 0 8px !important; color: #79d9c5 !important; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; }
 .plan-date { margin: 0 !important; color: #6e889c !important; font-size: 0.76rem; }
 .task-list { display: grid; gap: 10px; margin: 20px 0 0; padding: 0; list-style: none; counter-reset: task; }
 .task-list li { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 0; border-top: 1px solid #1d3851; color: #d8e4ee; line-height: 1.4; }
+.task-highlighted { border-radius: 8px; outline: 2px solid #79d9c5; outline-offset: 3px; background: #15384a; }
 .plan-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .task-label { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.task-label > span { display: grid; gap: 3px; }
+.task-label small { color: #7892a6; font-size: 0.78rem; line-height: 1.45; }
 .task-label input { margin-top: 4px; accent-color: #79d9c5; }
 .task-complete .task-label span { color: #7991a4; text-decoration: line-through; }
 .task-actions { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; }
@@ -67,12 +74,23 @@ h2 { margin: 4px 0 0; font-size: 1.55rem; letter-spacing: -0.03em; }
 .task-edit-form { display: flex; align-items: center; width: 100%; gap: 8px; }
 .task-edit-form input, .task-edit-form select { min-width: 0; border: 1px solid #34546d; border-radius: 7px; padding: 7px 8px; color: #eaf0f7; background: #07111f; }
 .task-edit-form input { flex: 1; }
+.task-edit-form input[name="description"] { flex: 1.2; }
 .progress-summary { display: grid; gap: 8px; margin-top: 20px; }
 .progress-heading { display: flex; justify-content: space-between; color: #9dafc1; font-size: 0.82rem; }
 .progress-heading strong { color: #79d9c5; }
 .progress-track { height: 7px; overflow: hidden; border-radius: 999px; background: #1a344a; }
 .progress-track span { display: block; height: 100%; border-radius: inherit; background: #79d9c5; transition: width 180ms ease; }
 .planner-notice { margin: 8px 0 0 !important; color: #9ccabd !important; font-size: 0.8rem; }
+.goal-details { margin: 4px 0 0 !important; color: #8aa5b7 !important; font-size: 0.82rem; }
+.next-step { display: grid; gap: 8px; margin-top: 22px; border: 1px solid #2b6570; border-radius: 14px; padding: 18px; background: linear-gradient(135deg, #10323a, #102b3b); }
+.next-step-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.next-step .section-kicker { margin: 0 !important; }
+.next-step h3 { margin: 0; color: #eef8f7; font-size: 1.05rem; }
+.next-step p { margin: 0 !important; color: #b5d0d1 !important; font-size: 0.88rem; }
+.next-step small { color: #8fb7b5; }
+.next-step .secondary-button { justify-self: start; margin-top: 4px; }
+.next-step-complete { border-color: #2d746b; background: #10332f; }
+.next-step-success { color: #9de5d3 !important; font-weight: 700; }
 .add-task-form { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; margin-top: 22px; }
 .add-task-form input, .add-task-form select, .filter-bar select { min-width: 0; border: 1px solid #34546d; border-radius: 8px; padding: 9px 10px; color: #eaf0f7; background: #07111f; }
 .secondary-button { border: 1px solid #34546d; border-radius: 8px; padding: 9px 12px; color: #c5d8e3; background: #10283c; font-weight: 700; cursor: pointer; }

@@ -22,7 +22,8 @@ describe('Qivorant foundation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Generate plan' }))
 
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Launch my portfolio website' })).toBeInTheDocument())
-    expect(screen.getByText(/Break “Launch my portfolio website” into a first concrete step/)).toBeInTheDocument()
+    expect(screen.getByText('Build the core user flow')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Next recommended step' })).toHaveTextContent('Define the scope for Launch my portfolio website')
   })
 
   it('marks a task complete and updates progress', async () => {
@@ -31,11 +32,11 @@ describe('Qivorant foundation', () => {
     fireEvent.change(screen.getByLabelText('What do you want to accomplish?'), { target: { value: 'Study math' } })
     fireEvent.click(screen.getByRole('button', { name: 'Generate plan' }))
 
-    await waitFor(() => expect(screen.getByRole('checkbox', { name: /Define what success means/ })).toBeInTheDocument())
-    fireEvent.click(screen.getByRole('checkbox', { name: /Define what success means/ }))
+    await waitFor(() => expect(screen.getAllByRole('checkbox').length).toBeGreaterThan(0))
+    fireEvent.click(screen.getAllByRole('checkbox')[0])
 
-    expect(screen.getByLabelText('Plan progress')).toHaveTextContent('1 of 3 tasks complete')
-    expect(screen.getByText('33%')).toBeInTheDocument()
+    expect(screen.getByLabelText('Plan progress')).toHaveTextContent('1 of 6 tasks complete')
+    expect(screen.getByText('17%')).toBeInTheDocument()
   })
 
   it('edits and deletes tasks', async () => {
@@ -44,11 +45,11 @@ describe('Qivorant foundation', () => {
     fireEvent.change(screen.getByLabelText('What do you want to accomplish?'), { target: { value: 'Plan a trip' } })
     fireEvent.click(screen.getByRole('button', { name: 'Generate plan' }))
 
-    await waitFor(() => expect(screen.getByRole('button', { name: /Edit Define what success means/ })).toBeInTheDocument())
-    fireEvent.click(screen.getByRole('button', { name: /Edit Define what success means/ }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /Edit Define the outcome for Plan a trip/ })).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: /Edit Define the outcome for Plan a trip/ }))
     fireEvent.change(screen.getByRole('textbox', { name: 'Task title' }), { target: { value: 'Choose a destination' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-    expect(screen.getByText('Choose a destination')).toBeInTheDocument()
+    expect(screen.getAllByText('Choose a destination').length).toBeGreaterThan(0)
 
     fireEvent.click(screen.getByRole('button', { name: /Delete Choose a destination/ }))
     expect(screen.queryByText('Choose a destination')).not.toBeInTheDocument()
