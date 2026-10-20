@@ -33,6 +33,22 @@ h2 { margin: 4px 0 0; font-size: 1.55rem; letter-spacing: -0.03em; }
 .plan-label { margin: 0 0 8px !important; color: #79d9c5 !important; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; }
 .task-list { display: grid; gap: 10px; margin: 20px 0 0; padding: 0; list-style: none; counter-reset: task; }
 .task-list li { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 0; border-top: 1px solid #1d3851; color: #d8e4ee; line-height: 1.4; }
+.plan-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.task-label { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.task-label input { margin-top: 4px; accent-color: #79d9c5; }
+.task-complete .task-label span { color: #7991a4; text-decoration: line-through; }
+.task-actions { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; }
+.icon-button, .text-button { border: 0; padding: 4px 0; color: #9fb4c6; background: transparent; font-size: 0.75rem; cursor: pointer; }
+.icon-button:hover, .text-button:hover { color: #79d9c5; }
+.icon-button.danger:hover { color: #ff9e9e; }
+.task-edit-form { display: flex; align-items: center; width: 100%; gap: 8px; }
+.task-edit-form input, .task-edit-form select { min-width: 0; border: 1px solid #34546d; border-radius: 7px; padding: 7px 8px; color: #eaf0f7; background: #07111f; }
+.task-edit-form input { flex: 1; }
+.progress-summary { display: grid; gap: 8px; margin-top: 20px; }
+.progress-heading { display: flex; justify-content: space-between; color: #9dafc1; font-size: 0.82rem; }
+.progress-heading strong { color: #79d9c5; }
+.progress-track { height: 7px; overflow: hidden; border-radius: 999px; background: #1a344a; }
+.progress-track span { display: block; height: 100%; border-radius: inherit; background: #79d9c5; transition: width 180ms ease; }
 .priority { flex: 0 0 auto; border-radius: 999px; padding: 4px 8px; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; }
 .priority-high { color: #ffd1d1; background: #7f303d; }
 .priority-medium { color: #ffe4ae; background: #725426; }
