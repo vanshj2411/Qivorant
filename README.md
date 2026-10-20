@@ -43,6 +43,34 @@ npm run build
 
 Build the app with `npm run build` and deploy the generated `dist/` directory to a static host such as Vercel, Netlify, or GitHub Pages.
 
-## Current status
+## Docker
 
-Milestone 1 provides the project foundation and initial responsive shell. AI planning, task editing, persistence, and execution flows are planned for subsequent milestones.
+Build and run the production preview:
+
+```bash
+docker build -t qivorant .
+docker run --rm -p 4173:4173 qivorant
+```
+
+Open `http://localhost:4173`.
+
+## Planning modes
+
+Qivorant always works locally with a deterministic fallback planner. The UI labels this mode explicitly. To connect a permitted AI planning service, copy `.env.example` to `.env` and set:
+
+```bash
+VITE_AI_PLANNER_URL=https://your-approved-planner-endpoint.example/api/plan
+```
+
+The endpoint should accept `POST { "goal": "..." }` and return either an array of tasks or `{ "tasks": [...] }`. Each task should contain `title` (or `description`) and may contain `priority` (`High`, `Medium`, or `Low`). If the endpoint fails or returns invalid data, Qivorant visibly falls back to the deterministic planner instead of pretending AI was used.
+
+## MVP capabilities
+
+- Create multiple saved goals.
+- Generate AI or deterministic fallback plans.
+- Add, edit, delete, reorder, filter, and complete tasks.
+- Track progress and show an all-done state.
+- Persist goals and tasks in localStorage.
+- Recover safely from malformed local browser data.
+
+External actions such as sending email, booking calendar events, or changing third-party systems are intentionally outside this MVP. “Execution” means guiding the user through the task list and recording completion.
