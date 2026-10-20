@@ -39,6 +39,18 @@ describe('Qivorant foundation', () => {
     expect(screen.getByText('17%')).toBeInTheDocument()
   })
 
+  it('updates the recommended step after completing the current task', async () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Create your first goal' }))
+    fireEvent.change(screen.getByLabelText('What do you want to accomplish?'), { target: { value: 'Build a portfolio website' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Generate plan' }))
+
+    const nextStep = screen.getByRole('region', { name: 'Next recommended step' })
+    expect(nextStep).toHaveTextContent('Define the scope for Build a portfolio website')
+    fireEvent.click(screen.getAllByRole('checkbox')[0])
+    expect(nextStep).toHaveTextContent('Choose the stack and create the project skeleton')
+  })
+
   it('edits and deletes tasks', async () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: 'Create your first goal' }))

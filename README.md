@@ -62,7 +62,7 @@ Qivorant always works locally with a deterministic fallback planner. The UI labe
 VITE_AI_PLANNER_URL=https://your-approved-planner-endpoint.example/api/plan
 ```
 
-The endpoint should accept `POST { "goal": "..." }` and return either an array of tasks or `{ "tasks": [...] }`. Each task should contain `title` (or `description`) and may contain `priority` (`High`, `Medium`, or `Low`). If the endpoint fails or returns invalid data, Qivorant visibly falls back to the deterministic planner instead of pretending AI was used.
+The endpoint receives `POST { "goal": "...", "duration": "...", "timePerDay": "..." }` and should return either an array of tasks or `{ "tasks": [...] }`. Each task should contain `title` (or `description`) and may contain `description`, `priority` (`High`, `Medium`, or `Low`), and `suggestedTiming`. If the endpoint fails or returns invalid data, Qivorant visibly falls back to the deterministic planner instead of pretending AI was used.
 
 ## MVP capabilities
 
