@@ -24,5 +24,17 @@ h2 { margin: 4px 0 0; font-size: 1.55rem; letter-spacing: -0.03em; }
 .primary-button { border: 0; border-radius: 12px; padding: 12px 18px; color: #07111f; background: #79d9c5; font-weight: 800; cursor: pointer; transition: transform 160ms ease, background 160ms ease; }
 .primary-button:hover { background: #99e8d6; transform: translateY(-1px); }
 .primary-button:focus-visible { outline: 3px solid #eaf0f7; outline-offset: 3px; }
+.goal-form { display: grid; gap: 10px; width: 100%; }
+.goal-form label { color: #dbe7f0; font-size: 0.9rem; font-weight: 700; }
+.goal-form input { width: 100%; border: 1px solid #34546d; border-radius: 10px; padding: 13px 14px; color: #eaf0f7; background: #07111f; outline: none; }
+.goal-form input:focus { border-color: #79d9c5; box-shadow: 0 0 0 3px #79d9c533; }
+.form-error { margin: 0 !important; color: #ff9e9e !important; font-size: 0.88rem; }
+.plan { width: 100%; }
+.plan-label { margin: 0 0 8px !important; color: #79d9c5 !important; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; }
+.task-list { display: grid; gap: 10px; margin: 20px 0 0; padding: 0; list-style: none; counter-reset: task; }
+.task-list li { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 0; border-top: 1px solid #1d3851; color: #d8e4ee; line-height: 1.4; }
+.priority { flex: 0 0 auto; border-radius: 999px; padding: 4px 8px; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.priority-high { color: #ffd1d1; background: #7f303d; }
+.priority-medium { color: #ffe4ae; background: #725426; }
 
 @media (max-width: 600px) { .shell { width: min(100% - 28px, 1120px); padding-top: 42px; } .empty-card { margin-top: 52px; padding: 26px; } }
